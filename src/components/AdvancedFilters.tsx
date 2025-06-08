@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SlidersHorizontal, MapPin, Star, Clock, Shield, Camera, TreePine, Users, X } from 'lucide-react';
+import { SlidersHorizontal, MapPin, Star, Clock, Shield, TreePine, X } from 'lucide-react';
 import { FilterOptions } from '../types';
 
 interface AdvancedFiltersProps {
@@ -14,7 +14,10 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({ filters, onFiltersCha
 
   if (!isOpen) return null;
 
-  const handleFilterChange = (key: keyof FilterOptions, value: any) => {
+  const handleFilterChange = <K extends keyof FilterOptions>(
+    key: K,
+    value: FilterOptions[K]
+  ) => {
     setLocalFilters(prev => ({ ...prev, [key]: value }));
   };
 

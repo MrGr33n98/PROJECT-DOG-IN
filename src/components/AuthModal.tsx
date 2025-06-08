@@ -87,7 +87,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
           type: 'owner'
         });
       }
-    } catch (error) {
+    } catch {
       setErrors({ general: 'Erro ao processar solicitação. Tente novamente.' });
     }
   };

@@ -26,8 +26,8 @@ const MyPets: React.FC<MyPetsProps> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: string, value: unknown) => {
+    setFormData(prev => ({ ...prev, [field]: value as never }));
   };
 
   const handleTemperamentChange = (temperament: string, checked: boolean) => {
@@ -57,7 +57,7 @@ const MyPets: React.FC<MyPetsProps> = ({ isOpen, onClose }) => {
         alert('Pet adicionado com sucesso!');
       }
       resetForm();
-    } catch (err) {
+    } catch {
       alert('Erro ao salvar pet');
     }
   };

@@ -31,7 +31,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose }) => {
       setFormData(prev => ({
         ...prev,
         [parent]: {
-          ...prev[parent as keyof typeof prev] as any,
+          ...(prev[parent as keyof typeof prev] as Record<string, unknown>),
           [child]: value
         }
       }));

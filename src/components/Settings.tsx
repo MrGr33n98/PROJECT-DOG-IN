@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, Bell, Shield, Eye, Mail, Smartphone, X, Save } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Shield, Eye, X, Save } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { saveSettings } from '../services/settingsService';
 
@@ -40,7 +40,10 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     }));
   };
 
-  const handlePrivacyChange = (key: string, value: any) => {
+  const handlePrivacyChange = (
+    key: string,
+    value: boolean | 'public' | 'private'
+  ) => {
     setSettings(prev => ({
       ...prev,
       privacy: { ...prev.privacy, [key]: value }
@@ -60,7 +63,7 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       await saveSettings(user.id, settings);
       alert('Configurações salvas com sucesso!');
       onClose();
-    } catch (err) {
+    } catch {
       alert('Erro ao salvar configurações');
     }
   };
