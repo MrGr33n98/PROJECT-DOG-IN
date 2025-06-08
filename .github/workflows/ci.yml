@@ -11,16 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          node-version: '18'
-
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build
-        run: npm run build
+          token: ${{ secrets.DIGITALOCEAN_TOKEN }}
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@v1.1.0
@@ -28,7 +22,6 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: 22
           script: |
             cd /var/www/dog-in
             git pull origin master
