@@ -3,30 +3,28 @@ name: Deploy to DigitalOcean
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install and Build
+      - name: Build application
         run: |
-          npm install
+          npm ci
           npm run build
 
-      - name: Deploy to Digital Ocean
+      - name: Deploy via rsync
         uses: burnett01/rsync-deployments@5.2
         with:
-          switches: -avzr --delete
-          remote_path: /var/www/dog-in
+          path: dist/
           remote_host: ${{ secrets.DROPLET_IP }}
           remote_user: ${{ secrets.DROPLET_USER }}
-          remote_password: ${{ secrets.DROPLET_PASSWORD }}
-          source: dist/
+          remote_port: 22
+          remote_path: /var/www/dog-in
+          remote_key: ${{ secrets.DROPLET_SSH_KEY }}
+          rsh: "ssh -o StrictHostKeyChecking=no"
