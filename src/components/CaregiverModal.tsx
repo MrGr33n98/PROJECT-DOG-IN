@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Star, MapPin, Shield, Clock, Phone, MessageCircle, Calendar } from 'lucide-react';
 import { Caregiver } from '../types';
 import { reviews } from '../data/reviews';
@@ -10,7 +10,33 @@ interface CaregiverModalProps {
 }
 
 const CaregiverModal: React.FC<CaregiverModalProps> = ({ caregiver, isOpen, onClose }) => {
+  const [checkIn, setCheckIn] = useState('');
+  const [checkOut, setCheckOut] = useState('');
+  const [service, setService] = useState('');
+
+  useEffect(() => {
+    if (caregiver) {
+      setService(caregiver.services[0]);
+    }
+  }, [caregiver]);
+
   if (!isOpen || !caregiver) return null;
+
+  const handleCheckout = async () => {
+    const res = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        caregiverId: caregiver.id,
+        startDate: checkIn,
+        endDate: checkOut,
+        service,
+        totalPrice: caregiver.pricePerNight,
+      }),
+    });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -150,15 +176,19 @@ const CaregiverModal: React.FC<CaregiverModalProps> = ({ caregiver, isOpen, onCl
                     </label>
                     <input
                       type="date"
+                      value={checkIn}
+                      onChange={(e) => setCheckIn(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Check-out  
+                      Check-out
                     </label>
                     <input
                       type="date"
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                   </div>
@@ -166,16 +196,23 @@ const CaregiverModal: React.FC<CaregiverModalProps> = ({ caregiver, isOpen, onCl
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Serviço
                     </label>
-                    <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent">
-                      {caregiver.services.map((service, index) => (
-                        <option key={index} value={service}>{service}</option>
+                    <select
+                      value={service}
+                      onChange={(e) => setService(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    >
+                      {caregiver.services.map((s, index) => (
+                        <option key={index} value={s}>{s}</option>
                       ))}
                     </select>
                   </div>
                 </div>
 
                 <div className="space-y-3">
-                  <button className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center justify-center space-x-2">
+                  <button
+                    onClick={handleCheckout}
+                    className="w-full bg-primary-600 text-white py-3 px-4 rounded-lg hover:bg-primary-700 transition-colors font-medium flex items-center justify-center space-x-2"
+                  >
                     <Calendar className="h-5 w-5" />
                     <span>Reservar Agora</span>
                   </button>
