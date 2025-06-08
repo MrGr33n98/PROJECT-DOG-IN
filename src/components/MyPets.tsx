@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Plus, Heart, Edit, Trash2, X, Camera, Shield, Stethoscope } from 'lucide-react';
 import { Pet } from '../types';
 import { mockPets } from '../data/mockData';
+import { addPet, updatePet } from '../services/petService';
 
 interface MyPetsProps {
   isOpen: boolean;
@@ -38,18 +39,27 @@ const MyPets: React.FC<MyPetsProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  const handleSavePet = () => {
-    if (editingPet) {
-      setPets(prev => prev.map(pet => pet.id === editingPet.id ? { ...pet, ...formData } : pet));
-    } else {
-      const newPet: Pet = {
-        ...formData as Pet,
-        id: Date.now().toString(),
-        ownerId: '1'
-      };
-      setPets(prev => [...prev, newPet]);
+  const handleSavePet = async () => {
+    try {
+      if (editingPet) {
+        const updated: Pet = { ...editingPet, ...(formData as Pet) };
+        await updatePet(updated);
+        setPets(prev => prev.map(pet => pet.id === editingPet.id ? updated : pet));
+        alert('Pet atualizado com sucesso!');
+      } else {
+        const newPet: Pet = {
+          ...(formData as Pet),
+          id: Date.now().toString(),
+          ownerId: '1'
+        };
+        await addPet(newPet);
+        setPets(prev => [...prev, newPet]);
+        alert('Pet adicionado com sucesso!');
+      }
+      resetForm();
+    } catch (err) {
+      alert('Erro ao salvar pet');
     }
-    resetForm();
   };
 
   const handleDeletePet = (petId: string) => {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Settings as SettingsIcon, Bell, Shield, Eye, Mail, Smartphone, X, Save } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { saveSettings } from '../services/settingsService';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -53,10 +54,15 @@ const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
     }));
   };
 
-  const handleSave = () => {
-    // Aqui você salvaria as configurações no backend
-    console.log('Saving settings:', settings);
-    onClose();
+  const handleSave = async () => {
+    if (!user) return;
+    try {
+      await saveSettings(user.id, settings);
+      alert('Configurações salvas com sucesso!');
+      onClose();
+    } catch (err) {
+      alert('Erro ao salvar configurações');
+    }
   };
 
   return (
