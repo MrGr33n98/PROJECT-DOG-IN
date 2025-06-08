@@ -10,6 +10,9 @@ const CaregiverList: React.FC = () => {
   const [selectedCaregiver, setSelectedCaregiver] = useState<Caregiver | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+  const [caregiverList, setCaregiverList] = useState<Caregiver[]>(caregivers);
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     services: [],
@@ -36,8 +39,31 @@ const CaregiverList: React.FC = () => {
     setFilters(newFilters);
   };
 
+  const fetchCaregivers = async (pageNum: number): Promise<Caregiver[]> => {
+    const response = await fetch(`/api/caregivers?page=${pageNum}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch caregivers');
+    }
+    const data: Caregiver[] = await response.json();
+    return data;
+  };
+
+  const loadMoreCaregivers = async () => {
+    const nextPage = page + 1;
+    setIsLoadingMore(true);
+    try {
+      const newCaregivers = await fetchCaregivers(nextPage);
+      setCaregiverList(prev => [...prev, ...newCaregivers]);
+      setPage(nextPage);
+    } catch (error) {
+      console.error('Erro ao buscar mais cuidadores:', error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
   // Filter and sort caregivers
-  const filteredCaregivers = caregivers
+  const filteredCaregivers = caregiverList
     .filter(caregiver => {
       // Search term filter
       if (searchTerm && !caregiver.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -248,7 +274,11 @@ const CaregiverList: React.FC = () => {
               <span className="text-sm text-gray-600">Ordenar por:</span>
               <select 
                 value={filters.sortBy}
-                onChange={(e) => setFilters(prev => ({ ...prev, sortBy: e.target.value as any }))}
+                onChange={(e) =>
+                  setFilters(prev => ({
+                    ...prev,
+                    sortBy: e.target.value as FilterOptions['sortBy']
+                  }))}
                 className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               >
                 <option value="rating">Melhor avaliação</option>
@@ -362,8 +392,12 @@ const CaregiverList: React.FC = () => {
           {/* Load More */}
           {filteredCaregivers.length > 0 && filteredCaregivers.length >= 9 && (
             <div className="text-center mt-12">
-              <button className="bg-white border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium">
-                Carregar mais cuidadores
+              <button
+                onClick={loadMoreCaregivers}
+                disabled={isLoadingMore}
+                className="bg-white border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+              >
+                {isLoadingMore ? 'Carregando...' : 'Carregar mais cuidadores'}
               </button>
             </div>
           )}
