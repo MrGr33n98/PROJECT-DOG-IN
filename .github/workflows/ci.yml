@@ -1,34 +1,37 @@
-name: CI
+name: Deploy to DigitalOcean
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches:
+      - master
 
 jobs:
-  build-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: '20'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm install
+
       - name: Build
         run: npm run build
-      - name: Deploy
-        uses: appleboy/ssh-action@v1.0.0
+
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          port: ${{ secrets.SSH_PORT }}
+          port: 22
           script: |
-            cd ${{ secrets.DEPLOY_PATH }}
-            git pull
-            npm ci
+            cd /var/www/dog-in
+            git pull origin master
+            npm install
             npm run build
             pm2 restart all
