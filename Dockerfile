@@ -25,7 +25,7 @@ RUN npm ci --omit=dev
 COPY --from=builder /app/dist ./dist
 COPY server ./server
 
-# Expose application port
-EXPOSE 3000
+# Expose new port
+EXPOSE 3002
 
 CMD ["node", "server/server.js"]
