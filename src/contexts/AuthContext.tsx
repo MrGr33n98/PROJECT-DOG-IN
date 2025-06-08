@@ -31,64 +31,93 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  const STORAGE_KEY = 'dogsinn_auth';
+
+  interface StoredAuth {
+    token: string;
+    user: User;
+    expiry: number;
+  }
+
+  const getStoredAuth = (): StoredAuth | null => {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    try {
+      const data: StoredAuth = JSON.parse(raw);
+      if (Date.now() > data.expiry) {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      return data;
+    } catch {
+      localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+  };
+
+  const saveAuth = (token: string, user: User) => {
+    const ttl = 24 * 60 * 60 * 1000; // 24h
+    const data: StoredAuth = { token, user, expiry: Date.now() + ttl };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  };
+
   useEffect(() => {
-    // Simular verificação de token/sessão
-    const savedUser = localStorage.getItem('dogsinn_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
+    const saved = getStoredAuth();
+    if (saved) {
+      setUser(saved.user);
     }
     setIsLoading(false);
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simular API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Mock user data
-    const mockUser: User = {
-      id: '1',
-      name: 'João Silva',
-      email: email,
-      phone: '(65) 99999-9999',
-      image: 'https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=100',
-      type: 'owner',
-      verified: true,
-      createdAt: new Date().toISOString()
-    };
-
-    setUser(mockUser);
-    localStorage.setItem('dogsinn_user', JSON.stringify(mockUser));
-    setIsLoading(false);
-    return true;
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      if (!res.ok) {
+        setIsLoading(false);
+        return false;
+      }
+      const data = await res.json();
+      setUser(data.user);
+      saveAuth(data.token, data.user);
+      setIsLoading(false);
+      return true;
+    } catch {
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const register = async (userData: RegisterData): Promise<boolean> => {
     setIsLoading(true);
-    
-    // Simular API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone,
-      type: userData.type,
-      verified: false,
-      createdAt: new Date().toISOString()
-    };
-
-    setUser(newUser);
-    localStorage.setItem('dogsinn_user', JSON.stringify(newUser));
-    setIsLoading(false);
-    return true;
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      if (!res.ok) {
+        setIsLoading(false);
+        return false;
+      }
+      const data = await res.json();
+      setUser(data.user);
+      saveAuth(data.token, data.user);
+      setIsLoading(false);
+      return true;
+    } catch {
+      setIsLoading(false);
+      return false;
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('dogsinn_user');
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   return (
