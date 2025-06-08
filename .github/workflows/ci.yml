@@ -11,20 +11,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
         with:
-          token: ${{ secrets.DIGITALOCEAN_TOKEN }}
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: unnecessary
+          if_key_exists: replace
+
+      - name: Build
+        run: |
+          npm install
+          npm run build
 
       - name: Deploy to DigitalOcean
-        uses: appleboy/ssh-action@v1.1.0
+        uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /var/www/dog-in
-            git pull origin master
-            npm install
-            npm run build
-            pm2 restart all
+          source: "dist/*"
+          target: "/var/www/dog-in"
+          strip_components: 1
