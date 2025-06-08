@@ -1,30 +1,34 @@
-name: CI/CD
+name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
       - name: Install dependencies
-        run: npm install
-      - name: Build project
+        run: npm ci
+      - name: Build
         run: npm run build
-      - name: Deploy to server
-        uses: appleboy/scp-action@v0.1.4
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DIGITALOCEAN_HOST }}
-          username: ${{ secrets.DIGITALOCEAN_USERNAME }}
-          key: ${{ secrets.DIGITALOCEAN_SSH_KEY }}
-          port: ${{ secrets.DIGITALOCEAN_PORT }}
-          source: "dist"
-          target: "/var/www/dog-in"
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            git pull
+            npm ci
+            npm run build
+            pm2 restart all
