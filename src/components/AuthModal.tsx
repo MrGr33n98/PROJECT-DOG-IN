@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import ResetPasswordModal from './ResetPasswordModal';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface AuthModalProps {
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [showPassword, setShowPassword] = useState(false);
+  const [resetOpen, setResetOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -91,6 +93,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
   };
 
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -270,7 +273,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
 
           {mode === 'login' && (
             <div className="mt-4 text-center">
-              <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+              <button
+                type="button"
+                onClick={() => setResetOpen(true)}
+                className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+              >
                 Esqueceu sua senha?
               </button>
             </div>
@@ -293,6 +300,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         </div>
       </div>
     </div>
+    <ResetPasswordModal isOpen={resetOpen} onClose={() => setResetOpen(false)} />
+    </>
   );
 };
 

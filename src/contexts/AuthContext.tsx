@@ -5,6 +5,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (userData: RegisterData) => Promise<boolean>;
+  forgotPassword: (email: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -86,13 +87,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/password/forgot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      setIsLoading(false);
+      return response.ok;
+    } catch {
+      setIsLoading(false);
+      return false;
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('dogsinn_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, login, register, forgotPassword, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
   );
