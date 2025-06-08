@@ -8,9 +8,11 @@ interface MyBookingsProps {
   onClose: () => void;
 }
 
+type FilterStatus = 'all' | 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled';
+
 const MyBookings: React.FC<MyBookingsProps> = ({ isOpen, onClose }) => {
   const [bookings] = useState<Booking[]>(mockBookings);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'in-progress' | 'completed' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<FilterStatus>('all');
 
   if (!isOpen) return null;
 
@@ -69,17 +71,17 @@ const MyBookings: React.FC<MyBookingsProps> = ({ isOpen, onClose }) => {
               <span className="font-medium text-gray-900">Filtrar por status:</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {[
+              {([
                 { key: 'all', label: 'Todas' },
                 { key: 'pending', label: 'Pendentes' },
                 { key: 'confirmed', label: 'Confirmadas' },
                 { key: 'in-progress', label: 'Em andamento' },
                 { key: 'completed', label: 'Concluídas' },
                 { key: 'cancelled', label: 'Canceladas' }
-              ].map(({ key, label }) => (
+              ] as { key: FilterStatus; label: string }[]).map(({ key, label }) => (
                 <button
                   key={key}
-                  onClick={() => setFilter(key as any)}
+                  onClick={() => setFilter(key)}
                   className={`px-4 py-2 rounded-lg border transition-colors ${
                     filter === key
                       ? 'border-primary-500 bg-primary-50 text-primary-700'
